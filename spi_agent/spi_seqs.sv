@@ -7,3 +7,5 @@ class spi_seqs extends uvm_sequence#(spi_trans);
 	endfunction
 
 endclass
+
+

@@ -1,18 +1,20 @@
 class apb_trans extends uvm_sequence_item;
 
-	`uvm_object_utils(apb_trans)
+        `uvm_object_utils(apb_trans)
 
-  	rand bit [2:0] paddr;
-  	rand bit pwrite;
-  	rand bit [7:0] pwdata;
-	bit [7:0] prdata;
-	bit pslverr;
-	bit pready;
+        rand bit presetn;
+        rand bit [2:0] paddr;
+        rand bit pwrite;
+        rand bit [7:0] pwdata;
+        bit [7:0] prdata;
+        bit pslverr;
+        bit pready;
+        bit psel;
+        bit penable;
 
-
-  	function new(string name = "apb_trans");
-    		super.new(name);
-  	endfunction
+        function new(string name = "apb_trans");
+                super.new(name);
+        endfunction
 
 
 endclass
