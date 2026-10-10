@@ -5,6 +5,16 @@ class env_config extends uvm_object;
     	apb_agent_config apb_cfg;
     	spi_agent_config spi_cfg;
 
+	virtual apb_if apb_vif ;
+	virtual spi_if spi_vif ;
+
+	int no_of_apb_agents ;
+	int no_of_spi_agents ;
+	
+	uvm_active_passive_enum IS_ACTIVE;
+
+	bit has_scoreboard;
+
     	function new(string name = "env_config");
         	super.new(name);
     	endfunction
