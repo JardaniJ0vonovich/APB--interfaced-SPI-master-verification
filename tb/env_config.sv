@@ -11,7 +11,6 @@ class env_config extends uvm_object;
 	int no_of_apb_agents = 4;
 	int no_of_spi_agents = 4;
 	
-	uvm_active_passive_enum IS_ACTIVE;
 
 	bit has_scoreboard;
 
