@@ -20,6 +20,18 @@ class test extends uvm_test;
         	m_cfg.apb_cfg.is_active = UVM_ACTIVE;
         	m_cfg.spi_cfg.is_active = UVM_ACTIVE;
 
+		m_cfg.no_of_apb_agents = 1;
+		m_cfg.no_of_spi_agents = 1;
+
+		if (!uvm_config_db#(virtual apb_if)::get(this, "", "apb_vif", m_cfg.apb_vif))
+            		`uvm_fatal("TEST", "APB virtual interface not found")
+
+		if (!uvm_config_db#(virtual spi_if)::get(this, "", "spi_vif", m_cfg.spi_vif))
+            		`uvm_fatal("TEST", "SPI virtual interface not found")
+
+		m_cfg.apb_cfg.apb_vif = m_cfg.apb_vif;
+        	m_cfg.spi_cfg.spi_vif = m_cfg.spi_vif;
+
         	uvm_config_db#(env_config)::set(this, "env_h", "env_cfg", m_cfg);
 
         	env_h = env::type_id::create("env_h", this);
