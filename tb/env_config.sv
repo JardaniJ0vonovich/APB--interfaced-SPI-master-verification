@@ -8,8 +8,8 @@ class env_config extends uvm_object;
 	virtual apb_if apb_vif ;
 	virtual spi_if spi_vif ;
 
-	int no_of_apb_agents = 4;
-	int no_of_spi_agents = 4;
+	int no_of_apb_agents ;
+	int no_of_spi_agents ;
 	
 
 	bit has_scoreboard;
