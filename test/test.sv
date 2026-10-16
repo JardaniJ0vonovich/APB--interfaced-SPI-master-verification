@@ -23,6 +23,8 @@ class test extends uvm_test;
 		m_cfg.no_of_apb_agents = 1;
 		m_cfg.no_of_spi_agents = 1;
 
+		m_cfg.spi_cfg.CR1 = 8'b0001_0000;
+
 		if (!uvm_config_db#(virtual apb_if)::get(this, "", "apb_vif", m_cfg.apb_vif))
             		`uvm_fatal("TEST", "APB virtual interface not found")
 
