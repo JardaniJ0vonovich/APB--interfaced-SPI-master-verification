@@ -7,6 +7,8 @@ class env extends uvm_env;
     	apb_agent apb_agt[];
     	spi_agent spi_agt[];
 
+	scoreboard sb;
+
     	function new(string name = "env", uvm_component parent = null);
         	super.new(name, parent);
     	endfunction
@@ -31,6 +33,23 @@ class env extends uvm_env;
 			uvm_config_db#(spi_agent_config)::set(this, $sformatf("spi_agt[%0d]", i), "spi_agent_cfg", m_cfg.spi_cfg);
 			spi_agt[i] = spi_agent::type_id::create($sformatf("spi_agt[%0d]",i), this);
 		end
+
+		if (m_cfg.has_scoreboard)
+    			sb = scoreboard::type_id::create("sb", this);
+	
     	endfunction
 
+
+	function void connect_phase(uvm_phase phase);
+		super.connect_phase(phase);
+
+		if(m_cfg.has_scoreboard)
+		begin
+			foreach(apb_agt[i])
+				apb_agt[i].mon.ap.connect(sb.apb_fifo.analysis_export);
+
+			foreach(spi_agt[i])
+				spi_agt[i].mon.ap.connect(sb.spi_fifo.analysis_export);
+		end
+	endfunction
 endclass
