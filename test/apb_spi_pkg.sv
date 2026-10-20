@@ -21,6 +21,7 @@ package apb_spi_pkg;
     `include "spi_agent.sv"
 
     `include "env_config.sv"
+    `include "scoreboard.sv"
     `include "env.sv"
 
     `include "test.sv"
