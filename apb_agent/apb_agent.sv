@@ -18,7 +18,8 @@ class apb_agent extends uvm_agent;
                         `uvm_fatal(get_full_name(), "Configuration not found")
 
                 mon = apb_monitor::type_id::create("mon", this);
-                uvm_config_db#(apb_agent_config)::set(this, "*", "apb_agent_cfg", m_cfg);
+
+                //uvm_config_db#(apb_agent_config)::set(this, "*", "apb_agent_cfg", m_cfg);
 
                 if (m_cfg.is_active == UVM_ACTIVE)
                 begin

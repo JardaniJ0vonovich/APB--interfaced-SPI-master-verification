@@ -4,7 +4,7 @@ module top;
         import uvm_pkg::*;
         import apb_spi_pkg::*;
 
-        bit PCLK = 0;
+        bit PCLK;
         always #5 PCLK = ~PCLK;
 
         apb_if apb_vif(PCLK);
@@ -24,19 +24,19 @@ module top;
                 .PREADY_o              (apb_vif.PREADY),
                 .PSLVERR_o              (apb_vif.PSLVERR),
 
-                .spi_interrupt_request_o(),
+                .spi_interrupt_request_o(spi_vif.spi_inpt_req),
 
                 .ss                    (spi_vif.SS),
                 .sclk_o                (spi_vif.SCLK),
-                .miso_i                (spi_vif.MISO[0]),
+                .miso_i                (spi_vif.MISO),
                 .mosi_o                (spi_vif.MOSI)
             );
 
-        initial begin
-                apb_vif.PRESETn = 1'b0;
-                #20;
-                apb_vif.PRESETn = 1'b1;
-        end
+        // initial begin
+        //         apb_vif.PRESETn = 1'b0;
+        //         #20;
+        //         apb_vif.PRESETn = 1'b1;
+        // end
 
         initial begin
                 uvm_config_db#(virtual apb_if)::set(null, "*", "apb_vif", apb_vif);

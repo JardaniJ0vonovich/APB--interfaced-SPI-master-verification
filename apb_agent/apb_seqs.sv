@@ -24,21 +24,21 @@ class cpol0_cpha0_lsb extends apb_seqs;
                 req = apb_trans::type_id::create("req");
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01010001;});
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01010001;});
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
-                finish_item(req);
-
-
-                start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd1; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
                 finish_item(req);
 
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'hA5; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd1; });
+                finish_item(req);
+
+
+                start_item(req);
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'hA5; });
                 finish_item(req);
 
         endtask
@@ -57,19 +57,19 @@ class cpol0_cpha1_lsb extends apb_seqs;
                 req = apb_trans::type_id::create("req");
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01010101; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01010101; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd2; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd2; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'h55; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'h55; });
                 finish_item(req);
         endtask
 
@@ -88,19 +88,19 @@ class cpol1_cpha0_lsb extends apb_seqs;
                 req = apb_trans::type_id::create("req");
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01011001; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01011001; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd4; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd4; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'hAA; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'hAA; });
                 finish_item(req);
 
         endtask
@@ -120,19 +120,19 @@ class cpol1_cpha1_lsb extends apb_seqs;
                 req = apb_trans::type_id::create("req");
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01011101; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01011101; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd8; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd8; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'd10; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'd10; });
                 finish_item(req);
 
         endtask
@@ -156,19 +156,19 @@ class cpol0_cpha0_msb extends apb_seqs;
                 req = apb_trans::type_id::create("req");
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01010000; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01010000; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd1; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd1; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'h5A; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'h5A; });
                 finish_item(req);
 
         endtask
@@ -188,19 +188,19 @@ class cpol0_cpha1_msb extends apb_seqs;
                 req = apb_trans::type_id::create("req");
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01010100; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01010100; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd4; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd4; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'd15; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'd15; });
                 finish_item(req);
 
         endtask
@@ -220,19 +220,19 @@ class cpol1_cpha0_msb extends apb_seqs;
                 req = apb_trans::type_id::create("req");
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01011000; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01011000; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd8; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd8; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'd8; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'd8; });
                 finish_item(req);
 
         endtask
@@ -252,19 +252,19 @@ class cpol1_cpha1_msb extends apb_seqs;
                 req = apb_trans::type_id::create("req");
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01011100; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01011100; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'd0; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd5; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd2; PWRITE == 1'b1; PWDATA == 8'd5; });
                 finish_item(req);
 
                 start_item(req);
-                assert(req.randomize() with { PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'd7; });
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd5; PWRITE == 1'b1; PWDATA == 8'd7; });
                 finish_item(req);
 
         endtask
@@ -284,12 +284,9 @@ class reset extends apb_seqs;
 
         task body;
                 req = apb_trans::type_id::create("req");
-
-                begin
-                        start_item(req);
-                        assert(req.randomize() with {PRESETn == 1'b0;});
-                        finish_item(req);
-                end
+                start_item(req);
+                assert(req.randomize() with {PRESETn == 1'b0;});
+                finish_item(req);
         endtask
 endclass
 
@@ -314,12 +311,9 @@ class low_power extends apb_seqs;
 
         task body;
                 req = apb_trans::type_id::create("req");
-
-                begin
-                        start_item(req);
-                         assert(req.randomize() with { PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'b00000010; });
-                        finish_item(req);
-                end
+                start_item(req);
+                assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd1; PWRITE == 1'b1; PWDATA == 8'b00000010; });
+                finish_item(req);                
         endtask
 endclass
 
@@ -336,7 +330,7 @@ class write_2_addr extends apb_seqs;
 
                 begin
                         start_item(req);
-                         assert(req.randomize() with { PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01010000; });
+                         assert(req.randomize() with { PRESETn == 1'b1; PADDR  == 3'd0; PWRITE == 1'b1; PWDATA == 8'b01010000; });
                         finish_item(req);
                 end
         endtask

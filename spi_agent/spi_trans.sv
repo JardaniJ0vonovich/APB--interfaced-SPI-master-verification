@@ -1,7 +1,7 @@
 class spi_trans extends uvm_sequence_item;
 
         `uvm_object_utils(spi_trans)
-
+        bit SS, SCLK;
         bit [7:0] MOSI_DATA;
         rand bit [7:0] MISO_DATA;
 

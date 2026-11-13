@@ -63,6 +63,8 @@ class spi_monitor extends uvm_monitor;
 
                         xtn.MOSI_DATA[lsb ? i : 7-i] = spi_vif.spi_mon_cb.MOSI;
                         xtn.MISO_DATA[lsb ? i : 7-i] = spi_vif.spi_mon_cb.MISO;
+                        xtn.SS = spi_vif.spi_mon_cb.SS;
+                        xtn.SCLK = spi_vif.spi_mon_cb.SCLK;
                 end
 
                 ap.write(xtn);

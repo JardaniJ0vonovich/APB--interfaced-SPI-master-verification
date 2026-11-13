@@ -4,6 +4,12 @@ class test extends uvm_test;
 
         env env_h;
         env_config m_cfg;
+        apb_agent_config apb_cfg;
+        spi_agent_config spi_cfg;
+
+        int no_of_apb_agents = 1;
+        int no_of_spi_agents = 1;
+        bit has_scoreboard = 1;
 
         bit [7:0] cr1_value ;
 
@@ -12,34 +18,43 @@ class test extends uvm_test;
         endfunction
 
         function void build_phase(uvm_phase phase);
+
                 super.build_phase(phase);
 
-                m_cfg = env_config::type_id::create("m_cfg");
+                env_h = env::type_id::create("env_h", this);
 
-                m_cfg.apb_cfg = apb_agent_config::type_id::create("apb_cfg");
-                m_cfg.spi_cfg = spi_agent_config::type_id::create("spi_cfg");
+                m_cfg = env_config::type_id::create("m_cfg");                
 
-                m_cfg.apb_cfg.is_active = UVM_ACTIVE;
-                m_cfg.spi_cfg.is_active = UVM_ACTIVE;
+                if( no_of_apb_agents )
+                begin
+                        apb_cfg = apb_agent_config::type_id::create("apb_cfg");        
 
-                m_cfg.no_of_apb_agents = 1;
-                m_cfg.no_of_spi_agents = 1;
-                m_cfg.has_scoreboard = 1;
-
-                m_cfg.spi_cfg.CR1 = cr1_value;
-
-                if (!uvm_config_db#(virtual apb_if)::get(this, "", "apb_vif", m_cfg.apb_vif))
+                        if (!uvm_config_db#(virtual apb_if)::get(this, "", "apb_vif", apb_cfg.apb_vif))
                         `uvm_fatal("TEST", "APB virtual interface not found")
+                end
 
-                if (!uvm_config_db#(virtual spi_if)::get(this, "", "spi_vif", m_cfg.spi_vif))
+                if( no_of_spi_agents )
+                begin
+                        spi_cfg = spi_agent_config::type_id::create("spi_cfg");
+
+                        if (!uvm_config_db#(virtual spi_if)::get(this, "", "spi_vif", spi_cfg.spi_vif))
                         `uvm_fatal("TEST", "SPI virtual interface not found")
+                end         
 
-                m_cfg.apb_cfg.apb_vif = m_cfg.apb_vif;
-                m_cfg.spi_cfg.spi_vif = m_cfg.spi_vif;
+                apb_cfg.is_active = UVM_ACTIVE;
+                spi_cfg.is_active = UVM_ACTIVE;
+
+                spi_cfg.CR1 = cr1_value;
+
+                m_cfg.no_of_apb_agents = no_of_apb_agents;
+                m_cfg.no_of_spi_agents = no_of_spi_agents;
+                m_cfg.has_scoreboard = has_scoreboard;
+
+                //m_cfg.apb_cfg.apb_vif = m_cfg.apb_vif;
+                //m_cfg.spi_cfg.spi_vif = m_cfg.spi_vif;
 
                 uvm_config_db#(env_config)::set(this, "env_h", "env_cfg", m_cfg);
-
-                env_h = env::type_id::create("env_h", this);
+                
         endfunction
 
         function void end_of_elaboration_phase(uvm_phase phase);
@@ -55,12 +70,13 @@ class cpol0_cpha0_lsb_test extends test;
                 super.new(name, parent);
         endfunction
 
-         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0101_0001;
+         function void build_phase(uvm_phase phase);                
                 super.build_phase(phase);
+                cr1_value = 8'b0101_0001;
          endfunction
 
         task run_phase(uvm_phase phase);
+                super.run_phase(phase);
                 cpol0_cpha0_lsb apb_seq;
                 spi_seqs        spi_seq;
 
@@ -78,6 +94,7 @@ class cpol0_cpha0_lsb_test extends test;
 
 endclass
 
+
 class cpol0_cpha1_lsb_test extends test;
         `uvm_component_utils(cpol0_cpha1_lsb_test)
 
@@ -85,12 +102,13 @@ class cpol0_cpha1_lsb_test extends test;
                 super.new(name,parent);
         endfunction
 
-        function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_0101;
+        function void build_phase(uvm_phase phase);                
                 super.build_phase(phase);
+                cr1_value = 8'b0001_0101;
         endfunction
 
         task run_phase(uvm_phase phase);
+                super.run_phase(phase);
                 cpol0_cpha1_lsb apb_seq;
                 spi_seqs        spi_seq;
 
@@ -108,6 +126,7 @@ class cpol0_cpha1_lsb_test extends test;
 
 endclass
 
+
 class cpol1_cpha0_lsb_test extends test;
         `uvm_component_utils(cpol1_cpha0_lsb_test)
 
@@ -115,12 +134,13 @@ class cpol1_cpha0_lsb_test extends test;
                 super.new(name,parent);
         endfunction
 
-        function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_1001;
+        function void build_phase(uvm_phase phase);                
                 super.build_phase(phase);
+                cr1_value = 8'b0001_1001;
         endfunction
 
         task run_phase(uvm_phase phase);
+                super.run_phase(phase);
                 cpol1_cpha0_lsb apb_seq;
                 spi_seqs        spi_seq;
 
@@ -146,12 +166,13 @@ class cpol1_cpha1_lsb_test extends test;
                 super.new(name,parent);
         endfunction
 
-        function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_1101;
+        function void build_phase(uvm_phase phase);                
                 super.build_phase(phase);
+                cr1_value = 8'b0001_1101;
         endfunction
 
         task run_phase(uvm_phase phase);
+                super.run_phase(phase);
                 cpol1_cpha1_lsb apb_seq;
                 spi_seqs        spi_seq;
 
@@ -176,12 +197,13 @@ class cpol0_cpha0_msb_test extends test;
                 super.new(name,parent);
         endfunction
 
-        function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_0000;
+        function void build_phase(uvm_phase phase);                
                 super.build_phase(phase);
+                cr1_value = 8'b0001_0000;
         endfunction
 
         task run_phase(uvm_phase phase);
+                super.run_phase(phase);
                 cpol0_cpha0_msb apb_seq;
                 spi_seqs        spi_seq;
 
@@ -207,12 +229,13 @@ class cpol0_cpha1_msb_test extends test;
                 super.new(name,parent);
         endfunction
 
-        function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_0100;
+        function void build_phase(uvm_phase phase);                
                 super.build_phase(phase);
+                cr1_value = 8'b0001_0100;
         endfunction
 
         task run_phase(uvm_phase phase);
+                super.run_phase(phase);
                 cpol0_cpha1_msb apb_seq;
                 spi_seqs        spi_seq;
 
@@ -237,12 +260,13 @@ class cpol1_cpha0_msb_test extends test;
                 super.new(name,parent);
         endfunction
 
-        function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_1000;
+        function void build_phase(uvm_phase phase);                
                 super.build_phase(phase);
+                cr1_value = 8'b0001_1000;
         endfunction
 
         task run_phase(uvm_phase phase);
+                super.run_phase(phase);
                 cpol1_cpha0_msb apb_seq;
                 spi_seqs        spi_seq;
 
@@ -267,12 +291,13 @@ class cpol1_cpha1_msb_test extends test;
                 super.new(name,parent);
         endfunction
 
-        function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_1100;
+        function void build_phase(uvm_phase phase);                
                 super.build_phase(phase);
+                cr1_value = 8'b0001_1100;
         endfunction
 
         task run_phase(uvm_phase phase);
+                super.run_phase(phase);
                 cpol1_cpha1_msb apb_seq;
                 spi_seqs        spi_seq;
 
@@ -299,7 +324,7 @@ class reset_test extends test;
         endfunction
 
         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_0000;
+                cr1_value = 8'b0101_0000;
                 super.build_phase(phase);
         endfunction
 

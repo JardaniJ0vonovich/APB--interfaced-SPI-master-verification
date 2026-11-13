@@ -6,7 +6,7 @@ class apb_agent_config extends uvm_object;
 
         virtual apb_if apb_vif;
 
-        function new(string name = "apb_agent_config");
+        function new(string name = "apb_agent_config"); 
                 super.new(name);
         endfunction
 
