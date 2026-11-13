@@ -1,13 +1,14 @@
 class apb_agent_config extends uvm_object;
 
-    	`uvm_object_utils(apb_agent_config)
+        `uvm_object_utils(apb_agent_config)
 
-	uvm_active_passive_enum is_active;
+        uvm_active_passive_enum is_active;
 
-	virtual apb_if apb_vif;
+        virtual apb_if apb_vif;
 
-    	function new(string name = "apb_agent_config");
-        	super.new(name);
-    	endfunction
+        function new(string name = "apb_agent_config");
+                super.new(name);
+        endfunction
 
 endclass
+

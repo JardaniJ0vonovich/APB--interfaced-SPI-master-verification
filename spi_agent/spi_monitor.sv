@@ -1,74 +1,75 @@
 class spi_monitor extends uvm_monitor;
-        
+
         `uvm_component_utils(spi_monitor)
 
-	virtual spi_if.spi_mon_mp spi_vif;
-	spi_agent_config m_cfg;
+        virtual spi_if.spi_mon_mp spi_vif;
+        spi_agent_config m_cfg;
 
-	uvm_analysis_port#(spi_trans) ap;
-        
+        uvm_analysis_port#(spi_trans) ap;
+
         function new(string name = "spi_monitor",uvm_component parent = null);
                 super.new(name,parent);
-		ap = new("ap",this);
+                ap = new("ap",this);
         endfunction
 
-	function void build_phase(uvm_phase phase);
-		super.build_phase(phase);
-		
-		if(!uvm_config_db#(spi_agent_config)::get(this,"","spi_agent_cfg",m_cfg))
-			`uvm_fatal("SPI MONITOR","configuration not found")
-	endfunction
+        function void build_phase(uvm_phase phase);
+                super.build_phase(phase);
 
-	function void connect_phase(uvm_phase phase);
-		super.connect_phase(phase);
-		spi_vif = m_cfg.spi_vif;
-	endfunction
+                if(!uvm_config_db#(spi_agent_config)::get(this,"","spi_agent_cfg",m_cfg))
+                        `uvm_fatal("SPI MONITOR","configuration not found")
+        endfunction
 
-	task run_phase(uvm_phase phase);
-		forever
-		begin
-			collect_data();
-		end
-	endtask
+        function void connect_phase(uvm_phase phase);
+                super.connect_phase(phase);
+                spi_vif = m_cfg.spi_vif;
+        endfunction
 
-	task collect_data();
-		
-		spi_trans xtn;
-		
-		bit cpol = m_cfg.CR1[3];
-		bit cpha = m_cfg.CR1[2];
-		bit lsb  = m_cfg.CR1[0];
+        task run_phase(uvm_phase phase);
+                forever
+                begin
+                        collect_data();
+                end
+        endtask
 
-		wait (spi_vif.SS == 1'b0);
+        task collect_data();
 
-		xtn = spi_trans::type_id::create("xtn");
+                spi_trans xtn;
 
-		for (int i = 0 ; i<8 ; i++)
-		begin
-			if(cpha == 1'b0)
-			begin
-				if(cpol == 1'b0)
-					@(posedge spi_vif.SCLK);
-				else
-					@(negedge spi_vif.SCLK);
-			end
+                bit cpol = m_cfg.CR1[3];
+                bit cpha = m_cfg.CR1[2];
+                bit lsb  = m_cfg.CR1[0];
 
-			else
-			begin
-				if(cpol == 1'b0)
-					@(negedge spi_vif.SCLK);
-				else
-					@(posedge spi_vif.SCLK);
-			end
-			
-			xtn.MOSI_DATA[lsb ? i : 7-i] = spi_vif.MOSI;
-			xtn.MISO_DATA[lsb ? i : 7-i] = spi_vif.MISO;
-		end
+                wait (spi_vif.spi_mon_cb.SS == 1'b0);
 
-		ap.write(xtn);
+                xtn = spi_trans::type_id::create("xtn");
 
-		`uvm_info("SPI_MONITOR", $sformatf("SPI Transfer: MOSI=%02h MISO=%02h CPOL=%0b CPHA=%0b LSBFE=%0b", xtn.MOSI_DATA, xtn.MISO_DATA, cpol, cpha, lsb), UVM_MEDIUM)
+                for (int i = 0 ; i<8 ; i++)
+                begin
+                        if(cpha == 1'b0)
+                        begin
+                                if(cpol == 1'b0)
+                                        @(posedge spi_vif.spi_mon_cb.SCLK);
+                                else
+                                        @(negedge spi_vif.spi_mon_cb.SCLK);
+                        end
 
-	endtask
+                        else
+                        begin
+                                if(cpol == 1'b0)
+                                        @(negedge spi_vif.spi_mon_cb.SCLK);
+                                else
+                                        @(posedge spi_vif.spi_mon_cb.SCLK);
+                        end
+
+                        xtn.MOSI_DATA[lsb ? i : 7-i] = spi_vif.spi_mon_cb.MOSI;
+                        xtn.MISO_DATA[lsb ? i : 7-i] = spi_vif.spi_mon_cb.MISO;
+                end
+
+                ap.write(xtn);
+
+                `uvm_info("SPI_MONITOR", $sformatf("SPI Transfer: MOSI=%02h MISO=%02h CPOL=%0b CPHA=%0b LSBFE=%0b", xtn.MOSI_DATA, xtn.MISO_DATA, cpol, cpha, lsb), UVM_MEDIUM)
+
+        endtask
 
 endclass
+

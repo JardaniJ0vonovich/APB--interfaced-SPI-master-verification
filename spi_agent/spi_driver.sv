@@ -1,57 +1,62 @@
 class spi_driver extends uvm_driver#(spi_trans);
-	
-	`uvm_component_utils(spi_driver)
 
-	spi_agent_config m_cfg;
-	virtual spi_if.spi_drv_mp spi_vif;
+        `uvm_component_utils(spi_driver)
 
-	function new(string name = "spi_driver",uvm_component parent = null);
-		super.new(name,parent);
-	endfunction
+        spi_agent_config m_cfg;
+        virtual spi_if.spi_drv_mp spi_vif;
 
-	function void build_phase(uvm_phase phase);
-		super.build_phase(phase);
+        function new(string name = "spi_driver",uvm_component parent = null);
+                super.new(name,parent);
+        endfunction
 
-		if(!uvm_config_db#(spi_agent_config)::get(this,"","spi_agent_cfg",m_cfg))
-			`uvm_fatal("SPI DRIVER", "get not working")
-	endfunction
+        function void build_phase(uvm_phase phase);
+                super.build_phase(phase);
 
-	function void connect_phase(uvm_phase phase);
-		super.connect_phase(phase);
-		spi_vif = m_cfg.spi_vif;
-	endfunction
+                if(!uvm_config_db#(spi_agent_config)::get(this,"","spi_agent_cfg",m_cfg))
+                        `uvm_fatal("SPI DRIVER", "get not working")
+        endfunction
 
-	task run_phase(uvm_phase phase);
-		forever
-		begin
-			seq_item_port.get_next_item(req);
-			send_to_dut(req);
-			seq_item_port.item_done();
-		end
-	endtask
+        function void connect_phase(uvm_phase phase);
+                super.connect_phase(phase);
+                spi_vif = m_cfg.spi_vif;
+        endfunction
 
-	task send_to_dut(spi_trans xtn);
+        task run_phase(uvm_phase phase);
+                forever
+                begin
+                        seq_item_port.get_next_item(req);
+                        send_to_dut(req);
+                        seq_item_port.item_done();
+                end
+        endtask
 
-    		bit cpol = m_cfg.CR1[3];
-    		bit cpha = m_cfg.CR1[2];
-    		bit lsb  = m_cfg.CR1[0];
+        task send_to_dut(spi_trans xtn);
 
-    		wait(spi_vif.SS == 1'b0);
-
-    		if (cpha == 1'b0)
-        		spi_vif.spi_drv_cb.MISO <= xtn.MISO_DATA[lsb ? 0 : 7];
+                bit cpol = m_cfg.CR1[3];
+                bit cpha = m_cfg.CR1[2];
+                bit lsb  = m_cfg.CR1[0];
 
 
-    		for (int i = (cpha ? 0:1) ; i < 8; i++) 
-		begin
-			if (cpol ^ cpha)
-                	        @(posedge spi_vif.SCLK);
-	                else
-        	                @(negedge spi_vif.SCLK);
+                $display("ss value is = %b",spi_vif.spi_drv_cb.SS);
 
-            		spi_vif.spi_drv_cb.MISO <= xtn.MISO_DATA[lsb ? i : (7-i)];
-    		end
+                wait(spi_vif.spi_drv_cb.SS == 1'b0);
 
-	endtask
+                $display("ss value is = %b",spi_vif.spi_drv_cb.SS);
+
+                if (cpha == 1'b0)
+                        spi_vif.spi_drv_cb.MISO <= xtn.MISO_DATA[lsb ? 0 : 7];
+
+
+                for (int i = (cpha ? 0:1) ; i < 8; i++)
+                begin
+                        if (cpol ^ cpha)
+                                @(posedge spi_vif.spi_drv_cb.SCLK);
+                        else
+                                @(negedge spi_vif.spi_drv_cb.SCLK);
+
+                        spi_vif.spi_drv_cb.MISO <= xtn.MISO_DATA[lsb ? i : (7-i)];
+                end
+
+        endtask
 
 endclass

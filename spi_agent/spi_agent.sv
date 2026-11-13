@@ -1,35 +1,36 @@
 class spi_agent extends uvm_agent;
-	
-	`uvm_component_utils(spi_agent)
 
-	spi_agent_config m_cfg;
-    	spi_sequencer seqr;
-    	spi_driver drv;
-    	spi_monitor mon;
+        `uvm_component_utils(spi_agent)
 
-	function new(string name = "spi_agent",uvm_component parent = null);
-		super.new(name,parent);
-	endfunction
+        spi_agent_config m_cfg;
+        spi_sequencer seqr;
+        spi_driver drv;
+        spi_monitor mon;
 
-	function void build_phase(uvm_phase phase);
-    		super.build_phase(phase);
+        function new(string name = "spi_agent",uvm_component parent = null);
+                super.new(name,parent);
+        endfunction
 
-    		if (!uvm_config_db#(spi_agent_config)::get(this, "", "spi_agent_cfg", m_cfg))
-        		`uvm_fatal(get_full_name(), "Configuration not found")
+        function void build_phase(uvm_phase phase);
+                super.build_phase(phase);
 
-    		mon = spi_monitor::type_id::create("mon", this);
+                if (!uvm_config_db#(spi_agent_config)::get(this, "", "spi_agent_cfg", m_cfg))
+                        `uvm_fatal(get_full_name(), "Configuration not found")
 
-    		if (m_cfg.is_active == UVM_ACTIVE) 
-		begin
-        		seqr = spi_sequencer::type_id::create("seqr", this);
-        		drv  = spi_driver::type_id::create("drv", this);
-    		end
-	endfunction
+                mon = spi_monitor::type_id::create("mon", this);
+                uvm_config_db#(spi_agent_config)::set(this, "*", "spi_agent_cfg", m_cfg);
 
-	function void connect_phase(uvm_phase phase);
-		super.connect_phase(phase);
-		if(m_cfg.is_active == UVM_ACTIVE)
-			drv.seq_item_port.connect(seqr.seq_item_export);
-	endfunction
+                if (m_cfg.is_active == UVM_ACTIVE)
+                begin
+                        seqr = spi_sequencer::type_id::create("seqr", this);
+                        drv  = spi_driver::type_id::create("drv", this);
+                end
+        endfunction
+
+        function void connect_phase(uvm_phase phase);
+                super.connect_phase(phase);
+                if(m_cfg.is_active == UVM_ACTIVE)
+                        drv.seq_item_port.connect(seqr.seq_item_export);
+        endfunction
 
 endclass
