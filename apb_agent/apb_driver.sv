@@ -1,63 +1,85 @@
-class apb_driver extends uvm_driver#(apb_trans);
-
+class apb_driver extends uvm_driver #(apb_xtn);
         `uvm_component_utils(apb_driver)
 
-        virtual apb_if.apb_drv_mp apb_vif;
-        apb_agent_config m_cfg;
 
-        localparam int PREADY_TIMEOUT = 1000;
+        virtual apb_intf.APB_DRV_MP apb_drv_if;
+        apb_config apb_cfg;
 
-        function new(string name = "apb_driver", uvm_component parent = null);
-                super.new(name, parent);
-        endfunction
 
-        function void build_phase(uvm_phase phase);
-                super.build_phase(phase);
-                if (!uvm_config_db#(apb_agent_config)::get(this, "", "apb_agent_cfg", m_cfg))
-                        `uvm_fatal(get_full_name(), "get is not working")
-        endfunction
+        extern function new(string name = "apb_driver", uvm_component parent);
+        extern function void build_phase(uvm_phase phase);
+        extern function void connect_phase(uvm_phase phase);
+        extern task run_phase(uvm_phase phase);
+        extern task reset();
+        extern task send_to_dut(apb_xtn xtn);
 
-        function void connect_phase(uvm_phase phase);
-                super.connect_phase(phase);
-                apb_vif = m_cfg.apb_vif;
-        endfunction
+endclass : apb_driver
 
-        task run_phase(uvm_phase phase);
-                apb_vif.apb_drv_cb.PRESETn <= 1'b0;
-                @(apb_vif.apb_drv_cb)
-                apb_vif.apb_drv_cb.PRESETn <= 1'b1;
 
-                forever begin
-                        seq_item_port.get_next_item(req);
-                        send_to_dut(req);
-                        seq_item_port.item_done();
-                end
-        endtask
+function apb_driver :: new(string name = "apb_driver", uvm_component parent);
+        super.new(name,parent);
+endfunction
 
-        task send_to_dut(apb_trans xtn);
-                @(apb_vif.apb_drv_cb);
-                apb_vif.apb_drv_cb.PSEL    <= 1'b1;
-                apb_vif.apb_drv_cb.PENABLE <= 1'b0;
-                apb_vif.apb_drv_cb.PADDR   <= xtn.PADDR;
-                apb_vif.apb_drv_cb.PWRITE  <= xtn.PWRITE;
-                if(xtn.PWRITE == 1'b1)
-                        apb_vif.apb_drv_cb.PWDATA  <= xtn.PWDATA;
+function void apb_driver :: build_phase(uvm_phase phase);
+        super.build_phase(phase);
+        if(!uvm_config_db #(apb_config) :: get(this,"","apb_config",apb_cfg))
+                `uvm_error(get_full_name(),"error while getting the apb_config");
 
-                @(apb_vif.apb_drv_cb);
-                apb_vif.apb_drv_cb.PENABLE <= 1'b1;
-                apb_vif.apb_drv_cb.PSEL    <= 1'b1;
+endfunction
 
-                wait (apb_vif.apb_drv_cb.PREADY == 1'b1);
 
-                if(xtn.PWRITE == 1'b0)
-                        xtn.PRDATA  = apb_vif.apb_drv_cb.PRDATA;
+function void apb_driver :: connect_phase(uvm_phase phase);
+        super.connect_phase(phase);
+        apb_drv_if = apb_cfg.apb_if;
+endfunction
 
-                @(apb_vif.apb_drv_cb);
 
-                apb_vif.apb_drv_cb.PSEL    <= 1'b0;
-                apb_vif.apb_drv_cb.PENABLE <= 1'b0;
+task apb_driver :: run_phase(uvm_phase phase);
+        super.run_phase(phase);
+        reset();
+        forever begin
+                $display("i am in apb_driver");
+                seq_item_port.get_next_item(req);
+                $display("after get next item");
+                send_to_dut(req);
+                seq_item_port.item_done();
+        end
+endtask
 
-                `uvm_info("APB_DRIVER",$sformatf("APB DRIVER LOGIC \n %s",xtn.sprint()),UVM_MEDIUM);
-        endtask
+task apb_driver ::  send_to_dut(apb_xtn xtn);
+        @(apb_drv_if.apb_drv_cb);
+        apb_drv_if.apb_drv_cb.PRESETn <= 1'b1;
+        apb_drv_if.apb_drv_cb.PADDR <= xtn.PADDR;
+        apb_drv_if.apb_drv_cb.PWRITE <= xtn.PWRITE;
+        apb_drv_if.apb_drv_cb.PSEL <= 1'b1;
+        apb_drv_if.apb_drv_cb.PENABLE <= 1'b0;
 
-endclass
+        //PSEL = 1, PENABLE = 0 setup phase
+        //check for pwrite if true then send pwdata
+        //else receive the prdata in next cycle
+
+        if(xtn.PWRITE)
+        apb_drv_if.apb_drv_cb.PWDATA <= xtn.PWDATA;
+        @(apb_drv_if.apb_drv_cb);
+        apb_drv_if.apb_drv_cb.PENABLE <= 1'b1; //initiate enable phase
+
+        wait(apb_drv_if.apb_drv_cb.PREADY == 1); //waiting for DUT to be ready
+        if(xtn.PWRITE == 1'b0)
+                 xtn.PRDATA = apb_drv_if.apb_drv_cb.PRDATA;
+
+        //written to latch the data for adapter (for built in sequence)
+        `uvm_info(get_type_name(),$sformatf("the transaction sent to dut is \n %s",xtn.sprint()), UVM_LOW)
+
+        @(apb_drv_if.apb_drv_cb);
+        apb_drv_if.apb_drv_cb.PSEL <= 1'b0;
+        apb_drv_if.apb_drv_cb.PENABLE <= 1'b0; //reset control signals
+endtask
+
+task apb_driver :: reset();
+        @(apb_drv_if.apb_drv_cb);
+                apb_drv_if.apb_drv_cb.PRESETn <= 1'b0;
+//      repeat(3)
+ @(apb_drv_if.apb_drv_cb);
+        apb_drv_if.apb_drv_cb.PRESETn <= 1'b1;
+endtask
+

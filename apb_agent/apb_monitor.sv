@@ -1,67 +1,73 @@
 class apb_monitor extends uvm_monitor;
-
         `uvm_component_utils(apb_monitor)
 
-        virtual apb_if.apb_mon_mp apb_vif;
-        apb_agent_config m_cfg;
+        uvm_analysis_port #(apb_xtn) apb_mon_port;
+                apb_xtn xtn;
 
-        uvm_analysis_port #(apb_trans) ap;
+        virtual apb_intf.APB_MON_MP apb_mon_if;
+        apb_config apb_cfg;
 
-        function new(string name = "apb_monitor",uvm_component parent = null);
-                super.new(name,parent);
-                ap = new("ap",this);
-        endfunction
 
-        function void build_phase(uvm_phase phase);
-                super.build_phase(phase);
+        extern function new(string name = "apb_monitor", uvm_component parent);
+        extern function void build_phase(uvm_phase phase);
+        extern function void connect_phase(uvm_phase phase);
+        extern task run_phase(uvm_phase phase);
+        extern task collect();
 
-                if(!uvm_config_db#(apb_agent_config)::get(this,"","apb_agent_cfg",m_cfg))
-                        `uvm_fatal(get_full_name(),"configuration not found")
-        endfunction
+endclass : apb_monitor
 
-        function void connect_phase(uvm_phase phase);
-                super.connect_phase(phase);
-                apb_vif = m_cfg.apb_vif;
-        endfunction
 
-        task run_phase(uvm_phase phase);
-                collect_data();
-        endtask
+function apb_monitor :: new(string name = "apb_monitor", uvm_component parent);
+        super.new(name,parent);
+        apb_mon_port = new("apb_mon_port",this);
+endfunction
 
-        task collect_data();
-                apb_trans xtn;
+
+function void apb_monitor :: build_phase(uvm_phase phase);
+        super.build_phase(phase);
+        if(!uvm_config_db #(apb_config) :: get(this,"","apb_config",apb_cfg))
+                `uvm_error(get_full_name(),"error while getting the apb_config");
+endfunction
+
+
+function void apb_monitor :: connect_phase(uvm_phase phase);
+        super.connect_phase(phase);
+        apb_mon_if = apb_cfg.apb_if;
+endfunction
+
+task apb_monitor :: run_phase(uvm_phase phase);
+        super.run_phase(phase);
+
         forever
-        begin
-                @(apb_vif.apb_mon_cb);
+        //      apb_xtn xtn;
+                 //xtn = apb_xtn :: type_id :: create("xtn");
+                collect();
 
-                if (apb_vif.apb_mon_cb.PSEL === 1'b1 && apb_vif.apb_mon_cb.PENABLE === 1'b1 && apb_vif.apb_mon_cb.PREADY === 1'b1)
-                begin
+endtask
 
-                        xtn = apb_trans::type_id::create("xtn");
+task apb_monitor :: collect();
+        apb_xtn xtn;
+        xtn = apb_xtn :: type_id :: create("xtn");
 
-                        xtn.PRESETn = apb_vif.apb_mon_cb.PRESETn;
-                        xtn.PADDR   = apb_vif.apb_mon_cb.PADDR;
-                        xtn.PWRITE  = apb_vif.apb_mon_cb.PWRITE;
-                        xtn.PSEL    = apb_vif.apb_mon_cb.PSEL;
-                        xtn.PENABLE = apb_vif.apb_mon_cb.PENABLE;
-                        xtn.PREADY  = apb_vif.apb_mon_cb.PREADY;
-                        xtn.PSLVERR = apb_vif.apb_mon_cb.PSLVERR;
+        $display("i am in monitor collect method");
+        @(apb_mon_if.apb_mon_cb);
 
-                        if (xtn.PWRITE)
-                                xtn.PWDATA = apb_vif.apb_mon_cb.PWDATA;
-                        else
-                                xtn.PRDATA = apb_vif.apb_mon_cb.PRDATA;
+        // wait( xtn.PENABLE === 1 &&  xtn.PREADY === 1)// begin
+         wait( apb_mon_if.apb_mon_cb.PENABLE == 1 &&  apb_mon_if.apb_mon_cb.PREADY == 1)// begin
+        //      $display("enable and ready values are %0d, %0d",apb_mon_if.apb_mon_cb.PENABLE,apb_mon_if.apb_mon_cb.PREADY);
+                xtn.PRESETn = apb_mon_if.apb_mon_cb.PRESETn;
+                xtn.PADDR = apb_mon_if.apb_mon_cb.PADDR;
+                xtn.PWRITE = apb_mon_if.apb_mon_cb.PWRITE;
+                xtn.PSEL = apb_mon_if.apb_mon_cb.PSEL;
+                xtn.PENABLE = apb_mon_if.apb_mon_cb.PENABLE;
+                xtn.PREADY = apb_mon_if.apb_mon_cb.PREADY;
+                xtn.PSLVERR = apb_mon_if.apb_mon_cb.PSLVERR;
+                if(apb_mon_if.apb_mon_cb.PWRITE)
+                         xtn.PWDATA = apb_mon_if.apb_mon_cb.PWDATA;
+                else
+                        xtn.PRDATA = apb_mon_if.apb_mon_cb.PRDATA;
+                `uvm_info(get_type_name(),$sformatf("the transaction from dut to apb_monitdor is \n %s",xtn.sprint()), UVM_LOW)
+                apb_mon_port.write(xtn);
+        //end
+endtask
 
-                        ap.write(xtn);
-
-                        `uvm_info("APB_MONITOR", $sformatf( "APB Transfer: ADDR=%0h WRITE=%0b WDATA=%0h RDATA=%0h PSLVERR=%0b", xtn.PADDR, xtn.PWRITE, xtn.PWDATA, xtn.PRDATA, xtn.PSLVERR), UVM_MEDIUM)
-
-
-                        do
-                        begin
-                                @(apb_vif.apb_mon_cb);
-                        end while (apb_vif.apb_mon_cb.PSEL === 1'b1 && apb_vif.apb_mon_cb.PENABLE === 1'b1);
-                end
-        end
-        endtask
-endclass
