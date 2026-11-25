@@ -1,374 +1,371 @@
-class test extends uvm_test;
-
-        `uvm_component_utils(test)
-
-        env env_h;
+class base_test extends uvm_test;
+        `uvm_component_utils(base_test)
+        env envh;
         env_config m_cfg;
+        apb_config apb_cfg;
+        spi_config spi_cfg;
+        vseqs vseqsh;
 
-        bit [7:0] cr1_value ;
+        bit reset_test;
+        bit [1:0] low_pwr_case;
 
-        function new(string name = "test", uvm_component parent = null);
-                super.new(name, parent);
-        endfunction
+//      spi_reg_block spi_reg_blk;
 
-        function void build_phase(uvm_phase phase);
-                super.build_phase(phase);
+        bit [7:0] ctrl;// = 8'b1111_1111;
 
-                m_cfg = env_config::type_id::create("m_cfg");
-
-                m_cfg.apb_cfg = apb_agent_config::type_id::create("apb_cfg");
-                m_cfg.spi_cfg = spi_agent_config::type_id::create("spi_cfg");
-
-                m_cfg.apb_cfg.is_active = UVM_ACTIVE;
-                m_cfg.spi_cfg.is_active = UVM_ACTIVE;
-
-                m_cfg.no_of_apb_agents = 1;
-                m_cfg.no_of_spi_agents = 1;
-                m_cfg.has_scoreboard = 1;
-
-                m_cfg.spi_cfg.CR1 = cr1_value;
-
-                if (!uvm_config_db#(virtual apb_if)::get(this, "", "apb_vif", m_cfg.apb_vif))
-                        `uvm_fatal("TEST", "APB virtual interface not found")
-
-                if (!uvm_config_db#(virtual spi_if)::get(this, "", "spi_vif", m_cfg.spi_vif))
-                        `uvm_fatal("TEST", "SPI virtual interface not found")
-
-                m_cfg.apb_cfg.apb_vif = m_cfg.apb_vif;
-                m_cfg.spi_cfg.spi_vif = m_cfg.spi_vif;
-
-                uvm_config_db#(env_config)::set(this, "env_h", "env_cfg", m_cfg);
-
-                env_h = env::type_id::create("env_h", this);
-        endfunction
-
-        function void end_of_elaboration_phase(uvm_phase phase);
-                super.end_of_elaboration_phase(phase);
-                uvm_top.print_topology();
-        endfunction
+        bit has_apb_agent =1;
+        bit has_spi_agent =1;
+        extern function new(string name = "base_test", uvm_component parent);
+        extern function void build_phase(uvm_phase phase);
+        extern function void end_of_elaboration_phase(uvm_phase phase);
+//      extern task run_phase(uvm_phase phase);
+        extern function void config_env;
 endclass
 
-class cpol0_cpha0_lsb_test extends test;
-        `uvm_component_utils(cpol0_cpha0_lsb_test)
+function base_test :: new(string name = "base_test", uvm_component parent);
+        super.new(name, parent);
+endfunction
 
-        function new(string name = "cpol0_cpha0_lsb_test",uvm_component parent = null);
-                super.new(name, parent);
-        endfunction
 
-         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0101_0001;
-                super.build_phase(phase);
-         endfunction
+function void base_test :: config_env ;
+        if(has_apb_agent) begin
+                apb_cfg = apb_config :: type_id :: create("apb_cfg");
+                if(!uvm_config_db #(virtual apb_intf) :: get(this,"","apb_intf",apb_cfg.apb_if))
+                        `uvm_error(get_full_name(),"error while getting apb virtual interface");
+                m_cfg.apb_cfg = apb_cfg;
+        end
+        if(has_spi_agent) begin
+                spi_cfg = spi_config :: type_id :: create("spi_cfg");
+                if(!uvm_config_db #(virtual spi_intf) :: get(this,"","spi_intf",spi_cfg.spi_if))
+                        `uvm_error(get_full_name(),"error while getting spi virtual interface");
+                m_cfg.spi_cfg = spi_cfg;
+        end
+        m_cfg.has_apb_agent = has_apb_agent;
+        m_cfg.has_spi_agent = has_spi_agent;
+        m_cfg.is_active = UVM_ACTIVE;
+        apb_cfg.is_active = m_cfg.is_active;
+        spi_cfg.is_active = m_cfg.is_active;
+endfunction
 
-        task run_phase(uvm_phase phase);
-                cpol0_cpha0_lsb apb_seq;
-                spi_seqs        spi_seq;
 
-                phase.raise_objection(this);
 
-                apb_seq = cpol0_cpha0_lsb::type_id::create("apb_seq");
-                spi_seq = spi_seqs::type_id::create("spi_seq");
-        fork
-                apb_seq.start(env_h.apb_agt[0].seqr);
 
-                spi_seq.start(env_h.spi_agt[0].seqr);
-        join
-                phase.drop_objection(this);
-        endtask
+function void base_test :: build_phase(uvm_phase phase);
+        super.build_phase(phase);
+        envh = env :: type_id :: create("envh",this);
+        m_cfg = env_config :: type_id :: create("m_cfg");
+        //uvm_reg :: include_coverage("*",UVM_CVR_ALL);//static function to enable coverage collection for all the registers includes fields, registers, maps etc...
+        config_env;
+
+//      spi_reg_blk = spi_reg_block :: type_id :: create("spi_reg_blk");
+//      spi_reg_blk.build();
+//      m_cfg.spi_reg_blk = spi_reg_blk;
+
+        uvm_config_db #(env_config) :: set(this,"*","env_config",m_cfg);
+
+
+endfunction
+
+function void base_test :: end_of_elaboration_phase(uvm_phase phase);
+//      super.end_of_elaboratoin_phase(phase);
+        uvm_top.print_topology();
+endfunction
+
+
+
+
+
+
+
+class resett_test extends base_test;
+        `uvm_component_utils(resett_test)
+
+        reset_vseqs rst_seqsh;
+//      apb_reset_seqs reset_seqh;
+        extern function new(string name ="resett_test",uvm_component parent);
+        extern function void build_phase(uvm_phase phase);
+        extern task run_phase (uvm_phase phase);
+
 
 endclass
 
-class cpol0_cpha1_lsb_test extends test;
-        `uvm_component_utils(cpol0_cpha1_lsb_test)
 
-        function new(string name = "cpol0_cpha1_lsb_test", uvm_component parent = null);
+        function resett_test :: new(string name ="resett_test", uvm_component parent);
+                super.new(name,parent);
+        endfunction
+
+        function void resett_test :: build_phase(uvm_phase phase);
+                super.build_phase(phase);
+                ctrl = 8'b1111_1111;
+                reset_test = 1'b1;
+                uvm_config_db #(bit[7:0]) :: set(this,"*","bit",ctrl);
+                uvm_config_db #(bit) :: set(this,"*","bit_reset",reset_test);
+        endfunction
+task resett_test :: run_phase(uvm_phase phase);
+
+        super.run_phase(phase);
+        $display("hey i am in test");
+        phase.raise_objection(this);
+        $display("after raise objection");
+        rst_seqsh = reset_vseqs :: type_id :: create("rst_seqsh");
+        $display("before starting the virtual sequence");
+        rst_seqsh.start(envh.vseqrh);
+        // reset_seqh = apb_reset_seqs :: type_id :: create("reset_seqh");
+        // $display("before starting normal sequence");
+        // reset_seqh.start(envh.vseqrh.apb_seqrh);
+        $display("after starting the virtual sequence");
+        phase.drop_objection(this);
+        $display("after drop objection");
+endtask
+
+//cpol=1, cphase=1, lsbfe=1;
+class cpol1_cpha1_lsb1 extends base_test;
+        `uvm_component_utils(cpol1_cpha1_lsb1)
+        cpol1_cpha1_lsb1_vseq cpol1_cpha1_lsb1_vseq_h;
+
+
+
+
+
+        function new(string name ="cpol1_cpha1_lsb1", uvm_component parent);
                 super.new(name,parent);
         endfunction
 
         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_0101;
                 super.build_phase(phase);
+                ctrl = 8'b11111111;
+                uvm_config_db #(bit[7:0]) :: set(this,"*","bit",ctrl);
         endfunction
 
         task run_phase(uvm_phase phase);
-                cpol0_cpha1_lsb apb_seq;
-                spi_seqs        spi_seq;
-
+                super.run_phase(phase);
                 phase.raise_objection(this);
+                cpol1_cpha1_lsb1_vseq_h = cpol1_cpha1_lsb1_vseq :: type_id :: create("cpol1_cpha1_lsb1_vseq_h");
+                cpol1_cpha1_lsb1_vseq_h.start(envh.vseqrh);
 
-                apb_seq = cpol0_cpha1_lsb::type_id::create("apb_seq");
-                spi_seq = spi_seqs::type_id::create("spi_seq");
-        fork
-                apb_seq.start(env_h.apb_agt[0].seqr);
 
-                spi_seq.start(env_h.spi_agt[0].seqr);
-        join
-                phase.drop_objection(this);
+
+
+
+        phase.drop_objection(this);
         endtask
-
 endclass
 
-class cpol1_cpha0_lsb_test extends test;
-        `uvm_component_utils(cpol1_cpha0_lsb_test)
+//cpol=1, cpahse=0, lsbfe=1;
+class cpol1_cpha0_lsb1 extends base_test;
+        `uvm_component_utils(cpol1_cpha0_lsb1)
+        cpol1_cpha0_lsb1_vseq cpol1_cpha0_lsb1_vseq_h;
 
-        function new(string name = "cpol1_cpha0_lsb_test", uvm_component parent = null);
+
+        function new(string name ="cpol1_cpha0_lsb1", uvm_component parent);
                 super.new(name,parent);
         endfunction
 
         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_1001;
                 super.build_phase(phase);
+                ctrl = 8'b11111011;
+                uvm_config_db #(bit[7:0]) :: set(this,"*","bit",ctrl);
         endfunction
 
         task run_phase(uvm_phase phase);
-                cpol1_cpha0_lsb apb_seq;
-                spi_seqs        spi_seq;
-
+                super.run_phase(phase);
                 phase.raise_objection(this);
-
-                apb_seq = cpol1_cpha0_lsb::type_id::create("apb_seq");
-                spi_seq = spi_seqs::type_id::create("spi_seq");
-        fork
-                apb_seq.start(env_h.apb_agt[0].seqr);
-
-                spi_seq.start(env_h.spi_agt[0].seqr);
-        join
+                cpol1_cpha0_lsb1_vseq_h = cpol1_cpha0_lsb1_vseq :: type_id :: create("cpol1_cpha0_lsb1_vseq_h");
+                repeat(3)
+                cpol1_cpha0_lsb1_vseq_h.start(envh.vseqrh);
                 phase.drop_objection(this);
-        endtask
-
+                endtask
 endclass
 
 
-class cpol1_cpha1_lsb_test extends test;
-        `uvm_component_utils(cpol1_cpha1_lsb_test)
 
-        function new(string name = "cpol1_cpha1_lsb_test", uvm_component parent = null);
+//cpol=0, cpahse=1, lsbfe=1;
+class cpol0_cpha1_lsb1 extends base_test;
+        `uvm_component_utils(cpol0_cpha1_lsb1)
+        cpol0_cpha1_lsb1_vseq cpol0_cpha1_lsb1_vseq_h;
+
+
+        function new(string name ="cpol0_cpha1_lsb1", uvm_component parent);
                 super.new(name,parent);
         endfunction
 
         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_1101;
                 super.build_phase(phase);
+                ctrl = 8'b11110111;
+                uvm_config_db #(bit[7:0]) :: set(this,"*","bit",ctrl);
         endfunction
 
         task run_phase(uvm_phase phase);
-                cpol1_cpha1_lsb apb_seq;
-                spi_seqs        spi_seq;
-
+                super.run_phase(phase);
                 phase.raise_objection(this);
-
-                apb_seq = cpol1_cpha1_lsb::type_id::create("apb_seq");
-                spi_seq = spi_seqs::type_id::create("spi_seq");
-        fork
-                apb_seq.start(env_h.apb_agt[0].seqr);
-
-                spi_seq.start(env_h.spi_agt[0].seqr);
-        join
+                cpol0_cpha1_lsb1_vseq_h = cpol0_cpha1_lsb1_vseq :: type_id :: create("cpol0_cpha1_lsb1_vseq_h");
+                cpol0_cpha1_lsb1_vseq_h.start(envh.vseqrh);
                 phase.drop_objection(this);
         endtask
-
 endclass
 
-class cpol0_cpha0_msb_test extends test;
-        `uvm_component_utils(cpol0_cpha0_msb_test)
 
-        function new(string name = "cpol0_cpha0_msb_test", uvm_component parent = null);
+
+//cpol=0, cpahse=0, lsbfe=1;
+class cpol0_cpha0_lsb1 extends base_test;
+        `uvm_component_utils(cpol0_cpha0_lsb1)
+        cpol0_cpha0_lsb1_vseq cpol0_cpha0_lsb1_vseq_h;
+
+
+        function new(string name ="cpol0_cpha0_lsb1", uvm_component parent);
                 super.new(name,parent);
         endfunction
 
         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_0000;
                 super.build_phase(phase);
+                ctrl = 8'b11110011;
+                uvm_config_db #(bit[7:0]) :: set(this,"*","bit",ctrl);
         endfunction
 
         task run_phase(uvm_phase phase);
-                cpol0_cpha0_msb apb_seq;
-                spi_seqs        spi_seq;
-
+                super.run_phase(phase);
                 phase.raise_objection(this);
-
-                apb_seq = cpol0_cpha0_msb::type_id::create("apb_seq");
-                spi_seq = spi_seqs::type_id::create("spi_seq");
-        fork
-                apb_seq.start(env_h.apb_agt[0].seqr);
-
-                spi_seq.start(env_h.spi_agt[0].seqr);
-        join
+                cpol0_cpha0_lsb1_vseq_h = cpol0_cpha0_lsb1_vseq :: type_id :: create("cpol0_cpha0_lsb1_vseq_h");
+                cpol0_cpha0_lsb1_vseq_h.start(envh.vseqrh);
                 phase.drop_objection(this);
         endtask
-
 endclass
 
 
-class cpol0_cpha1_msb_test extends test;
-        `uvm_component_utils(cpol0_cpha1_msb_test)
 
-        function new(string name = "cpol0_cpha1_msb_test", uvm_component parent = null);
+
+
+
+//cpol=1, cphase=1, lsbfe=0;
+class cpol1_cpha1_lsb0 extends base_test;
+        `uvm_component_utils(cpol1_cpha1_lsb0)
+        cpol1_cpha1_lsb0_vseq cpol1_cpha1_lsb0_vseq_h;
+
+
+        function new(string name ="cpol1_cpha1_lsb0", uvm_component parent);
                 super.new(name,parent);
         endfunction
 
         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_0100;
                 super.build_phase(phase);
+                ctrl = 8'b11111110;
+                uvm_config_db #(bit[7:0]) :: set(this,"*","bit",ctrl);
         endfunction
 
         task run_phase(uvm_phase phase);
-                cpol0_cpha1_msb apb_seq;
-                spi_seqs        spi_seq;
-
+                super.run_phase(phase);
                 phase.raise_objection(this);
-
-                apb_seq = cpol0_cpha1_msb::type_id::create("apb_seq");
-                spi_seq = spi_seqs::type_id::create("spi_seq");
-        fork
-                apb_seq.start(env_h.apb_agt[0].seqr);
-
-                spi_seq.start(env_h.spi_agt[0].seqr);
-        join
+                cpol1_cpha1_lsb0_vseq_h = cpol1_cpha1_lsb0_vseq :: type_id :: create("cpol1_cpha1_lsb0_vseq_h");
+                cpol1_cpha1_lsb0_vseq_h.start(envh.vseqrh);
                 phase.drop_objection(this);
         endtask
-
 endclass
 
-class cpol1_cpha0_msb_test extends test;
-        `uvm_component_utils(cpol1_cpha0_msb_test)
 
-        function new(string name = "cpol1_cpha0_msb_test", uvm_component parent = null);
+
+//cpol=1, cpahse=0, lsbfe=0;
+class cpol1_cpha0_lsb0 extends base_test;
+        `uvm_component_utils(cpol1_cpha0_lsb0)
+        cpol1_cpha0_lsb0_vseq cpol1_cpha0_lsb0_vseq_h;
+
+
+        function new(string name ="cpol1_cpha0_lsb0", uvm_component parent);
                 super.new(name,parent);
         endfunction
 
         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_1000;
                 super.build_phase(phase);
+                ctrl = 8'b11111010;
+                uvm_config_db #(bit[7:0]) :: set(this,"*","bit",ctrl);
         endfunction
 
         task run_phase(uvm_phase phase);
-                cpol1_cpha0_msb apb_seq;
-                spi_seqs        spi_seq;
-
+                super.run_phase(phase);
                 phase.raise_objection(this);
-
-                apb_seq = cpol1_cpha0_msb::type_id::create("apb_seq");
-                spi_seq = spi_seqs::type_id::create("spi_seq");
-        fork
-                apb_seq.start(env_h.apb_agt[0].seqr);
-
-                spi_seq.start(env_h.spi_agt[0].seqr);
-        join
+                cpol1_cpha0_lsb0_vseq_h = cpol1_cpha0_lsb0_vseq :: type_id :: create("cpol1_cpha0_lsb0_vseq_h");
+                cpol1_cpha0_lsb0_vseq_h.start(envh.vseqrh);
                 phase.drop_objection(this);
         endtask
-
 endclass
 
-class cpol1_cpha1_msb_test extends test;
-        `uvm_component_utils(cpol1_cpha1_msb_test)
 
-        function new(string name = "cpol1_cpha1_msb_test", uvm_component parent = null);
+
+//cpol=0, cpahse=1, lsbfe=0;
+class cpol0_cpha1_lsb0 extends base_test;
+        `uvm_component_utils(cpol0_cpha1_lsb0)
+        cpol0_cpha1_lsb0_vseq cpol0_cpha1_lsb0_vseq_h;
+
+
+        function new(string name ="cpol0_cpha1_lsb0", uvm_component parent);
                 super.new(name,parent);
         endfunction
 
         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_1100;
                 super.build_phase(phase);
+                ctrl = 8'b11110110;
+                uvm_config_db #(bit[7:0]) :: set(this,"*","bit",ctrl);
         endfunction
 
         task run_phase(uvm_phase phase);
-                cpol1_cpha1_msb apb_seq;
-                spi_seqs        spi_seq;
-
+                super.run_phase(phase);
                 phase.raise_objection(this);
-
-                apb_seq = cpol1_cpha1_msb::type_id::create("apb_seq");
-                spi_seq = spi_seqs::type_id::create("spi_seq");
-        fork
-                apb_seq.start(env_h.apb_agt[0].seqr);
-
-                spi_seq.start(env_h.spi_agt[0].seqr);
-        join
+                cpol0_cpha1_lsb0_vseq_h = cpol0_cpha1_lsb0_vseq :: type_id :: create("cpol0_cpha1_lsb0_vseq_h");
+                cpol0_cpha1_lsb0_vseq_h.start(envh.vseqrh);
                 phase.drop_objection(this);
         endtask
-
 endclass
 
-class reset_test extends test;
 
-        `uvm_component_utils(reset_test)
+//cpol=0, cpahse=0, lsbfe=0;
+class cpol0_cpha0_lsb0 extends base_test;
+        `uvm_component_utils(cpol0_cpha0_lsb0)
+        cpol0_cpha0_lsb0_vseq cpol0_cpha0_lsb0_vseq_h;
 
-        function new(string name = "reset_test", uvm_component parent = null);
-                super.new(name, parent);
+
+        function new(string name ="cpol0_cpha0_lsb0", uvm_component parent);
+                super.new(name,parent);
         endfunction
 
         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_0000;
                 super.build_phase(phase);
+                ctrl = 8'b11110010;
+                uvm_config_db #(bit[7:0]) :: set(this,"*","bit",ctrl);
         endfunction
 
         task run_phase(uvm_phase phase);
-                reset reset_seq;
-
+                super.run_phase(phase);
                 phase.raise_objection(this);
-
-                reset_seq = reset::type_id::create("reset_seq");
-                reset_seq.start(env_h.apb_agt[0].seqr);
-
+                cpol0_cpha0_lsb0_vseq_h = cpol0_cpha0_lsb0_vseq :: type_id :: create("cpol0_cpha0_lsb0_vseq_h");
+                cpol0_cpha0_lsb0_vseq_h.start(envh.vseqrh);
                 phase.drop_objection(this);
         endtask
-
 endclass
 
-class low_power_test extends test;
 
-        `uvm_component_utils(low_power_test)
+//low power mode seq
+class low_power_mode extends base_test;
+        `uvm_component_utils(low_power_mode)
+        low_power_mode_vseq low_power_mode_vseq_h;
 
-        function new(string name = "low_power_test", uvm_component parent = null);
-                super.new(name, parent);
+
+        function new(string name ="low_power_mode_vseq_h", uvm_component parent);
+                super.new(name,parent);
         endfunction
 
         function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0001_0000;
                 super.build_phase(phase);
+                ctrl = 8'b10110010;
+                low_pwr_case = 2'b01;
+                uvm_config_db #(bit[7:0]) :: set(this,"*","bit",ctrl);
+                uvm_config_db #(bit[1:0]) :: set(this,"*","bit[1:0]",low_pwr_case);
         endfunction
 
         task run_phase(uvm_phase phase);
-                low_power low_power_seq;
-
+                super.run_phase(phase);
                 phase.raise_objection(this);
-
-                low_power_seq = low_power::type_id::create("low_power_seq");
-                low_power_seq.start(env_h.apb_agt[0].seqr);
-
+                low_power_mode_vseq_h = low_power_mode_vseq :: type_id :: create("low_power_mode_vseq_h");
+                low_power_mode_vseq_h.start(envh.vseqrh);
                 phase.drop_objection(this);
         endtask
-
 endclass
 
-/*class spi_test extends test;
-
-        `uvm_component_utils(spi_test)
-
-        function new(string name = "spi_test", uvm_component parent = null);
-                super.new(name, parent);
-        endfunction
-
-        function void build_phase(uvm_phase phase);
-                cr1_value = 8'b0101_0000;
-                super.build_phase(phase);
-        endfunction
-
-        task run_phase(uvm_phase phase);
- 
-                spi_seqs spi_seq;
-                write_2_addr write_seq;
-
-                phase.raise_objection(this);
-
-                spi_seq = spi_seqs::type_id::create("spi_seq");
-                write_seq = write_2_addr::type_id::create("write_seq");
-
-                write_seq.start(env_h.apb_agt[0].seqr);
-                spi_seq.start(env_h.spi_agt[0].seqr);
-
-                phase.drop_objection(this);
-        endtask
-endclass*/
-                            
