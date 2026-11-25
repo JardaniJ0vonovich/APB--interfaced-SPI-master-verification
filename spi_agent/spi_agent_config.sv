@@ -1,15 +1,14 @@
-class spi_agent_config extends uvm_object;
+class spi_config extends uvm_object;
+        `uvm_object_utils(spi_config)
 
-        `uvm_object_utils(spi_agent_config)
+        virtual spi_intf spi_if;
 
         uvm_active_passive_enum is_active;
 
-        bit [7:0] CR1;
+        extern function new(string name ="spi_config");
+endclass : spi_config
 
-        virtual spi_if spi_vif;
 
-        function new(string name = "spi_agent_config");
-                super.new(name);
-        endfunction
-
-endclass
+function spi_config :: new(string name ="spi_config");
+        super.new(name);
+endfunction
