@@ -1,50 +1,51 @@
 module top;
 
-        `include "uvm_macros.svh"
         import uvm_pkg::*;
         import apb_spi_pkg::*;
+        bit clock;
 
-        bit PCLK = 0;
-        always #5 PCLK = ~PCLK;
+        always #5 clock = ~clock;
 
-        apb_if apb_vif(PCLK);
-        spi_if spi_vif(PCLK);
+                apb_intf apb_if(clock);
+                spi_intf spi_if(clock);
 
         top_module dut (
-                .PCLK                  (PCLK),
-                .PRESET_n              (apb_vif.PRESETn),
+                .PCLK                  (clock),
+                .PRESET_n              (apb_if.PRESETn),
 
-                .PADDR_i               (apb_vif.PADDR),
-                .PWRITE_i              (apb_vif.PWRITE),
-                .PSEL_i                (apb_vif.PSEL),
-                .PENABLE_i             (apb_vif.PENABLE),
-                .PWDATA_i              (apb_vif.PWDATA),
+                .PADDR_i               (apb_if.PADDR),
+                .PWRITE_i              (apb_if.PWRITE),
+                .PSEL_i                (apb_if.PSEL),
+                .PENABLE_i             (apb_if.PENABLE),
+                .PWDATA_i              (apb_if.PWDATA),
 
-                .PRDATA_o              (apb_vif.PRDATA),
-                .PREADY_o              (apb_vif.PREADY),
-                .PSLVERR_o              (apb_vif.PSLVERR),
+                .PRDATA_o              (apb_if.PRDATA),
+                .PREADY_o              (apb_if.PREADY),
+                .PSLVERR_o              (apb_if.PSLVERR),
 
-                .spi_interrupt_request_o(),
+                .spi_interrupt_request_o(spi_if.spi_inpt_req),
 
-                .ss                    (spi_vif.SS),
-                .sclk_o                (spi_vif.SCLK),
-                .miso_i                (spi_vif.MISO[0]),
-                .mosi_o                (spi_vif.MOSI)
+                .ss                    (spi_if.ss),
+                .sclk_o                (spi_if.sclk),
+                .miso_i                (spi_if.miso),
+                .mosi_o                (spi_if.mosi)
             );
 
-        initial begin
-                apb_vif.PRESETn = 1'b0;
-                #20;
-                apb_vif.PRESETn = 1'b1;
-        end
+        // initial begin
+        //         apb_vif.PRESETn = 1'b0;
+        //         #20;
+        //         apb_vif.PRESETn = 1'b1;
+        // end
 
         initial begin
-                uvm_config_db#(virtual apb_if)::set(null, "*", "apb_vif", apb_vif);
 
-                uvm_config_db#(virtual spi_if)::set(null, "*", "spi_vif", spi_vif);
+
+
+                uvm_config_db #(virtual apb_intf) :: set(null,"*","apb_intf",apb_if);
+                uvm_config_db #(virtual spi_intf) :: set(null,"*","spi_intf",spi_if);
+
 
                 run_test();
         end
-
 endmodule
 

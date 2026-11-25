@@ -1,55 +1,51 @@
 class env extends uvm_env;
-
         `uvm_component_utils(env)
-
-        env_config m_cfg;
-
-        apb_agent apb_agt[];
-        spi_agent spi_agt[];
-
+        apb_agent_top apb_agntoph;
+        spi_agent_top spi_agntoph;
         scoreboard sb;
 
-        function new(string name = "env", uvm_component parent = null);
-                super.new(name, parent);
-        endfunction
+        vseqr vseqrh;
 
-        function void build_phase(uvm_phase phase);
-                super.build_phase(phase);
+        env_config m_cfg;
+        extern function new(string name = "env", uvm_component parent);
+        extern function void build_phase(uvm_phase phase);
+        extern function void connect_phase(uvm_phase phase);
+endclass : env
 
-                if (!uvm_config_db#(env_config)::get(this, "", "env_cfg", m_cfg))
-                        `uvm_fatal(get_full_name(), "Configuration not found")
+function env :: new(string name = "env", uvm_component parent);
+        super.new(name,parent);
+endfunction
 
-                apb_agt = new[m_cfg.no_of_apb_agents];
-                spi_agt = new[m_cfg.no_of_spi_agents];
+function void env:: build_phase(uvm_phase phase);
+        super.build_phase(phase);
+        if(!uvm_config_db #(env_config) :: get(this,"","env_config",m_cfg))
+                `uvm_error(get_full_name(),"error while getting the env_config");
+        if(m_cfg.has_apb_agent) begin
+        uvm_config_db #(apb_config) :: set(this,"*","apb_config",m_cfg.apb_cfg);
+        apb_agntoph = apb_agent_top :: type_id :: create("apb_agntoph",this);
+        end
+        if(m_cfg.has_spi_agent) begin
+        uvm_config_db #(spi_config) :: set(this,"*","spi_config",m_cfg.spi_cfg);
+        spi_agntoph = spi_agent_top :: type_id :: create("spi_agntoph",this);
+        end
+        if(m_cfg.has_sb)
+                sb = scoreboard :: type_id :: create("sb",this);
+        if(m_cfg.has_virtual_seqr)
+                vseqrh = vseqr :: type_id :: create("vseqrh",this);
+endfunction
 
-                foreach (apb_agt[i])
-                begin
-                        uvm_config_db#(apb_agent_config)::set(this, $sformatf("apb_agt[%0d]", i), "apb_agent_cfg", m_cfg.apb_cfg);
-                        apb_agt[i] = apb_agent::type_id::create($sformatf("apb_agt[%0d]",i),this);
-                end
-
-                foreach(spi_agt[i])
-                begin
-                        uvm_config_db#(spi_agent_config)::set(this, $sformatf("spi_agt[%0d]", i), "spi_agent_cfg", m_cfg.spi_cfg);
-                        spi_agt[i] = spi_agent::type_id::create($sformatf("spi_agt[%0d]",i), this);
-                end
-
-                if (m_cfg.has_scoreboard)
-                        sb = scoreboard::type_id::create("sb", this);
-
-        endfunction
+function void env :: connect_phase(uvm_phase phase);
+        super.connect_phase(phase);
+        if(m_cfg.has_virtual_seqr) begin
+                vseqrh.spi_seqrh = spi_agntoph.spi_agnth.spi_seqrh;
+                vseqrh.apb_seqrh = apb_agntoph.apb_agnth.apb_seqrh;
+        end
 
 
-        function void connect_phase(uvm_phase phase);
-                super.connect_phase(phase);
 
-                if(m_cfg.has_scoreboard)
-                begin
-                        foreach(apb_agt[i])
-                                apb_agt[i].mon.ap.connect(sb.apb_fifo.analysis_export);
+        if(m_cfg.has_sb) begin
+        apb_agntoph.apb_agnth.apb_monh.apb_mon_port.connect(sb.fifo_apb.analysis_export);
+        spi_agntoph.spi_agnth.spi_monh.spi_mon_port.connect(sb.fifo_spi.analysis_export);
+        end
+endfunction
 
-                        foreach(spi_agt[i])
-                                spi_agt[i].mon.ap.connect(sb.spi_fifo.analysis_export);
-                end
-        endfunction
-endclass
