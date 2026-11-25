@@ -1,28 +1,28 @@
-interface spi_if(input logic PCLK);
+interface spi_intf(input bit clock);//In SPI, DUT owns the clock (SCLK) → testbench just listens → no assignment needed
+   logic ss;
+   logic sclk;
+   logic mosi;
+   logic miso;
+   logic spi_inpt_req;
 
-        logic MOSI;
-        logic [7:0] MISO;
-        logic SCLK;
-        logic SS;
+   clocking spi_drv_cb@(posedge clock);
+     default input #1 output #1;
+     input ss;
+     input sclk;
+     input mosi;
+     output miso;
+     input spi_inpt_req;
+   endclocking
 
-        clocking spi_drv_cb @(posedge PCLK);
-                output MISO;
+   clocking spi_mon_cb@(posedge clock);
+     default input #1 output #1;
+     input ss;
+     input sclk;
+     input mosi;
+     input miso;
+     input spi_inpt_req;
+   endclocking
 
-                input MOSI;
-                input SCLK;
-                input SS;
-        endclocking
-
-        clocking spi_mon_cb @(posedge PCLK);
-                input MOSI;
-                input MISO;
-                input SCLK;
-                input SS;
-        endclocking
-
-
-        modport spi_drv_mp(clocking spi_drv_cb);
-        modport spi_mon_mp(clocking spi_mon_cb);
-
-endinterface
-
+   modport SPI_DRV_MP (clocking spi_drv_cb);
+   modport SPI_MON_MP (clocking spi_mon_cb);
+ endinterface
